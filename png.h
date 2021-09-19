@@ -17,6 +17,9 @@ typedef enum {
     GrayScaleAlpha = 4,
     RGBAlpha = 6
 } ColorType;
+const char * COLORTYPE (int i) {
+   return (char *)((char *[]){"Gray Scale", "", "", "RGB", "Pallete", "Gray Scale + Alpha", "", "RGBA"})[i];
+}
 
 typedef enum {
     NoInterlace = 0,
@@ -27,8 +30,8 @@ typedef struct {
     uint32_t          width; // Comprimento
     uint32_t         height; // Altura
     Byte              depth; // Profundidade de bits
-    ColorType         color; // Tipo de cor
-    Interlace     interlace; // Tipo de intrelaçamento
+    Byte              color; // Tipo de cor
+    Byte          interlace; // Tipo de intrelaçamento
     Byte             filter; // Tipo de cor
     Byte        compression; // Tipo de compressão
 } IHDR;
