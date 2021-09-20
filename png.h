@@ -18,7 +18,7 @@ typedef enum {
     RGBAlpha = 6
 } ColorType;
 const char * COLORTYPE (int i) {
-   return (char *)((char *[]){"Gray Scale", "", "", "RGB", "Pallete", "Gray Scale + Alpha", "", "RGBA"})[i];
+   return (const char *)((const char *[]){"Gray Scale", "", "", "RGB", "Pallete", "Gray Scale + Alpha", "", "RGBA"})[i];
 }
 
 typedef enum {

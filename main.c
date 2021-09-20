@@ -24,6 +24,10 @@ int main(int, char ** a){
             bloco->lenght, cabecalho->height, cabecalho->width, cabecalho->color, COLORTYPE(cabecalho->color));
     if (cabecalho->color != RGB)
         die(strcat("Formato de cores não suportado, deve ser RGB não ", COLORTYPE(cabecalho->color)));
+    if (cabecalho->interlace)
+        die("Imagem não pode conter entrelaçamento");
+    if (cabecalho->filter)
+        die("Imagem não pode conter filtro");
 
     trash_chunk(bloco);
     return 0;
