@@ -1,12 +1,12 @@
 #include <stdint.h> // Para usarmos o int32_t
 #include <stdbool.h>
-typedef char Byte;
+typedef unsigned char Byte;
 // Assinatura :        89    50    4e    47    0d    0a    1a    0a  
 
 typedef struct {
     int32_t lenght; // O int 32 sempre tem 4 bytes
     Byte   type[5]; // O tipo é sempre uma string
-    void *    data; // Os dados tem tamanho variável
+    Byte *    data; // Os dados tem tamanho variável
     int32_t    crc;
 } Chunk;
 
@@ -17,9 +17,6 @@ typedef enum {
     GrayScaleAlpha = 4,
     RGBAlpha = 6
 } ColorType;
-const char * COLORTYPE (int i) {
-   return (const char *)((const char *[]){"Gray Scale", "", "", "RGB", "Pallete", "Gray Scale + Alpha", "", "RGBA"})[i];
-}
 
 typedef enum {
     NoInterlace = 0,

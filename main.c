@@ -5,7 +5,15 @@
 
 void die(char *);
 
-int main(int, char ** a){
+Chunk * bloco, * idat;
+void defer(){
+    if (idat)
+        trash_chunk(idat);
+    if (bloco)
+        trash_chunk(bloco);
+}
+
+int main(int c, char ** a){
     // Criando o arquivo e abrindo a imagem
     FILE * image = fopen(a[1], "rb");
     if (!image)
@@ -14,22 +22,43 @@ int main(int, char ** a){
         die("A imagem não é uma PNG");
 
     // Pegando primeiro Chunk
-    Chunk * bloco = next_chunk(image);
-    if (strcmp(bloco->type, "IHDR"))
+    bloco = next_chunk(image);
+    if (strcmp((const char*)bloco->type, "IHDR"))
         die("Não foi possível ler o cabeçalho do arquivo");
 
     // Convertendo Chunk para um cabeçalho
     IHDR * cabecalho = to_IHDR(bloco->data);
-    printf("Tamanho do cabecalho: %i, Largura: %i, Altura: %i, Tipo de cor: %i %s\n",
-            bloco->lenght, cabecalho->height, cabecalho->width, cabecalho->color, COLORTYPE(cabecalho->color));
+    printf("Tamanho do cabecalho: %i, Largura: %i, Altura: %i, Tipo de cor: %i\n",
+            bloco->lenght, cabecalho->height, cabecalho->width, cabecalho->color);
+
+    // Avisando se a imagem não for suportada pelo programa
     if (cabecalho->color != RGB)
-        die(strcat("Formato de cores não suportado, deve ser RGB não ", COLORTYPE(cabecalho->color)));
+        die("Formato de cores não suportado, deve ser RGB");
     if (cabecalho->interlace)
         die("Imagem não pode conter entrelaçamento");
     if (cabecalho->filter)
         die("Imagem não pode conter filtro");
 
-    trash_chunk(bloco);
+    // Enquanto o idat não for nulo e diferente de IDAT
+    while ((idat = next_chunk(image)) && strcmp((const char*)idat->type, "IDAT")){
+        // Como o chunk não é um IDAT ele deve ser limpo antes de buscarmos o próximo
+        trash_chunk(idat);
+    }
+    printf("Byte count: %i, Buff Size: %i\n", idat->lenght, (int) sizeof (&idat->data[0]));
+
+    // Enquanto o idat não for nulo e diferente de IEND
+    int i = 0;
+    do {
+        Byte * data = (Byte *)idat->data;
+        for (int j = 0; j+2 < idat->lenght; j+=3) {
+            printf("%02X%02X%02X ", data[j+0], data[j+1], data[j+2]);
+            if (i%((int)cabecalho->width/3) == 0 && i > 1)
+                puts("");
+            i++;
+        }
+    } while ((idat = next_chunk(image)) && strcmp((const char*)idat->type, "IEND"));
+
+
     return 0;
 }
 
