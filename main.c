@@ -38,13 +38,14 @@ int main(int c, char ** a){
         die("Imagem não pode conter entrelaçamento");
     if (cabecalho->filter)
         die("Imagem não pode conter filtro");
+    if (cabecalho->compression)
+        die("Imagem não pode conter compressão");
 
     // Enquanto o chunk não for nulo e diferente de IDAT
     while ((idat = next_chunk(image)) && strcmp((const char*)idat->type, "IDAT")){
         // Como o chunk não é um IDAT ele deve ser limpo antes de buscarmos o próximo
         trash_chunk(idat);
     }
-    printf("Byte count: %i, Buff Size: %i\n", idat->lenght, (int) sizeof (&idat->data[0]));
 
     // Enquanto o chunk não for nulo e diferente de IEND (ou seja, enquanto o chunk é um IDAT)
     int i = 0;
