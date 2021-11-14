@@ -39,25 +39,24 @@ int main(int c, char ** a){
     if (cabecalho->filter)
         die("Imagem não pode conter filtro");
 
-    // Enquanto o idat não for nulo e diferente de IDAT
+    // Enquanto o chunk não for nulo e diferente de IDAT
     while ((idat = next_chunk(image)) && strcmp((const char*)idat->type, "IDAT")){
         // Como o chunk não é um IDAT ele deve ser limpo antes de buscarmos o próximo
         trash_chunk(idat);
     }
     printf("Byte count: %i, Buff Size: %i\n", idat->lenght, (int) sizeof (&idat->data[0]));
 
-    // Enquanto o idat não for nulo e diferente de IEND
+    // Enquanto o chunk não for nulo e diferente de IEND (ou seja, enquanto o chunk é um IDAT)
     int i = 0;
     do {
         Byte * data = (Byte *)idat->data;
         for (int j = 0; j+2 < idat->lenght; j+=3) {
             printf("%02X%02X%02X ", data[j+0], data[j+1], data[j+2]);
-            if (i%((int)cabecalho->width/3) == 0 && i > 1)
+            if (j+1%((int)cabecalho->width) == 0)
                 puts("");
             i++;
         }
     } while ((idat = next_chunk(image)) && strcmp((const char*)idat->type, "IEND"));
-
 
     return 0;
 }
