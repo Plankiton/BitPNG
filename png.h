@@ -1,4 +1,5 @@
 #include <stdint.h> // Para usarmos o int32_t
+#include <stdio.h>
 #include <stdbool.h>
 typedef unsigned char Byte;
 // Assinatura :        89    50    4e    47    0d    0a    1a    0a  
@@ -42,5 +43,6 @@ typedef SIZE_RAW Dimentions;
 bool is_PNG(FILE * image);
 void correct_litle_endian(Byte * bytes);
 Chunk * next_chunk(FILE * image);
+void fwrite_chunk(FILE * outfile, Chunk * chunk);
 void trash_chunk(Chunk * block);
-IHDR* to_IHDR(const char * raw_data);
+IHDR* to_IHDR(Byte * raw_data);

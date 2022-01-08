@@ -13,7 +13,7 @@ bool is_PNG(FILE * image){
     // Lendo os 8 bytes da imagem e colocando na variavel signature
     fread(signature, 1, 8, image);
     // Checando se o arquivo é ou não uma PNG
-    if (strcmp(signature, PNG_sign) == 0)
+    if (strcmp((const char *)signature, PNG_sign) == 0)
         return  true;
     return false;
 }
@@ -38,7 +38,7 @@ Chunk * next_chunk(FILE * image){
 
     // Tem que vir antes do data, para não corromper os dados do mesmo
     block->type[4] = 0;
-    block->data = (char *)malloc(block->lenght);
+    block->data = (Byte *)malloc(block->lenght);
 
     // Lendo os dados do chunk
     fread(block->data, block->lenght, 1, image);
@@ -48,12 +48,31 @@ Chunk * next_chunk(FILE * image){
     return block;
 }
 
+void fput_bytes(FILE * outfile, Byte * b, size_t size) {
+    printf("%li \n", size);
+    for (int i = 0; i < size; i++)
+        fputc(b[i], outfile);
+}
+
+void fwrite_chunk(FILE * outfile, Chunk * chunk) {
+    int orig_lenght = chunk->lenght;
+
+    Byte * lenght = (Byte *)chunk;
+    correct_litle_endian(lenght);
+
+    fwrite(lenght, 1, 4, outfile);
+    fput_bytes(outfile, chunk->type, 4);
+    fput_bytes(outfile, chunk->data, orig_lenght);
+    fputc(chunk->crc, outfile);
+
+}
+
 void trash_chunk(Chunk * block){
     free(block->data);
     free(block);
 }
 
-IHDR* to_IHDR(const char * raw_data){
+IHDR* to_IHDR(Byte * raw_data){
     Dimentions* data = (Dimentions*)raw_data;
     correct_litle_endian(data->width);
     correct_litle_endian(data->height);
