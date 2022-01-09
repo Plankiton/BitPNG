@@ -40,10 +40,13 @@ typedef struct {
 } SIZE_RAW;
 typedef SIZE_RAW Dimentions;
 
+void correct_litle_endian(Byte * bytes);
+
 bool is_PNG(FILE * image);
 void fwrite_sign(FILE * outfile);
-void correct_litle_endian(Byte * bytes);
+
 Chunk * next_chunk(FILE * image);
 void fwrite_chunk(FILE * outfile, Chunk * chunk);
 void trash_chunk(Chunk * block);
+
 IHDR* to_IHDR(Byte * raw_data);

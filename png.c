@@ -2,6 +2,20 @@
 #include <stdlib.h>
 #include <string.h>
 #include "png.h"
+#include "crc.h"
+
+uint8_t crc_startup = 0;
+uint32_t check_crc(Chunk * chunk) {
+    if (!crc_startup) {
+        crcInit();
+        crc_startup = 1;
+    }
+
+    int32_t new_crc = crcFast(chunk->data, chunk->lenght);
+    printf("%u == %u ? %u\n", new_crc, chunk->crc, new_crc == chunk->crc);
+    return new_crc == chunk->crc;
+}
+
 
 const char PNG_sign [] = { 0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0};
 bool is_PNG(FILE * image){
@@ -67,6 +81,8 @@ void fwrite_chunk(FILE * outfile, Chunk * chunk) {
 
     Byte * lenght = (Byte *)&chunk->lenght;
     correct_litle_endian(lenght);
+
+    // chunk->crc = check_crc(chunk) ?crcFast(chunk->data, chunk->lenght) :chunk->crc;
 
     Byte * crc = (Byte *)&chunk->crc;
     correct_litle_endian(crc);

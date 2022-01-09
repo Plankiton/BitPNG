@@ -69,9 +69,16 @@ int main(int c, char ** a){
         Byte * data = idat->data;
 
         for (int j = 0; j+2 < idat->lenght; j+=3) {
+            printf("%i%i%i", data[j+0], data[j+1], data[j+2]);
             /* printf("%02X%02X%02X ", data[j+0], data[j+1], data[j+2]);
             if (j+1%((int)cabecalho->width) == 0)
-                puts(""); */
+                puts("");*/
+
+            int average = (data[j+0] + data[j+1] + data[j+2]) / 3;
+            data[j+0] = average;
+            data[j+0] = average;
+            data[j+0] = average;
+
             i++;
         }
 
