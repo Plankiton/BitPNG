@@ -3,3 +3,4 @@ build
 *.o
 *.a
 *.so
+.ccls-cache

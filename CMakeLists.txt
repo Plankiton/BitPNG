@@ -9,7 +9,8 @@ cmake_minimum_required(VERSION 3.1...3.21)
 project(
   BitPNG
   VERSION 1.0
-  LANGUAGES C)
+  LANGUAGES C
+)
 
 # If you set any CMAKE_ variables, that can go here.
 # (But usually don't do this, except maybe for C++ standard)
@@ -23,6 +24,7 @@ project(
 # Including header files here helps IDEs but is not required.
 # Output libname matches target name, with the usual extensions on your system
 add_library(BitPNGLib png.c png.h)
+# add_library(CrcLib crc.c crc.h)
 
 # Link each target with other targets or add options, etc.
 
