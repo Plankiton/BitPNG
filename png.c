@@ -3,8 +3,8 @@
 #include <string.h>
 #include "png.h"
 
+const char PNG_sign [] = { 0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0};
 bool is_PNG(FILE * image){
-    const char PNG_sign [] = { 0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0};
 
     // Criando variável para guardar a assinatura
     Byte signature[9];
@@ -18,6 +18,10 @@ bool is_PNG(FILE * image){
     return false;
 }
 
+void fwrite_sign(FILE * outfile) {
+    fputs(PNG_sign, outfile);
+}
+
 void correct_litle_endian(Byte * bytes){
     char reverse[4];
     int i, r;
@@ -29,47 +33,56 @@ void correct_litle_endian(Byte * bytes){
 }
 
 Chunk * next_chunk(FILE * image){
-    Chunk* block = (Chunk*)malloc(sizeof (Chunk));
-    fread(block, 8, 1, image);
+    Chunk* chunk = (Chunk*)malloc(sizeof (Chunk));
+
+    // Lendo o lenght
+    fread(&chunk->lenght, 1, 4, image);
 
     // Corrigindo bug de little endian
-    Byte * lenght = (Byte *)block;
+    Byte * lenght = (Byte *)&chunk->lenght;
     correct_litle_endian(lenght);
 
     // Tem que vir antes do data, para não corromper os dados do mesmo
-    block->type[4] = 0;
-    block->data = (Byte *)malloc(block->lenght);
+    fread(chunk->type, 4, 1, image);
+    chunk->type[4] = 0;
 
     // Lendo os dados do chunk
-    fread(block->data, block->lenght, 1, image);
+    chunk->data = (Byte *)malloc(chunk->lenght);
+
+    for (int i = 0; i < chunk->lenght; i++)
+        chunk->data[i] = fgetc(image);
 
     // Lendo o crc
-    fread(&block->crc, 4, 1, image);     // Salvando dados no cabeçalho
-    return block;
-}
+    fread(&chunk->crc, 4, 1, image);     // Salvando dados no cabeçalho
 
-void fput_bytes(FILE * outfile, Byte * b, size_t size) {
-    printf("%li \n", size);
-    for (int i = 0; i < size; i++)
-        fputc(b[i], outfile);
+    // Corrigindo bug de little endian
+    Byte * crc = (Byte *)&chunk->crc;
+    correct_litle_endian(crc);
+
+    return chunk;
 }
 
 void fwrite_chunk(FILE * outfile, Chunk * chunk) {
     int orig_lenght = chunk->lenght;
 
-    Byte * lenght = (Byte *)chunk;
+    Byte * lenght = (Byte *)&chunk->lenght;
     correct_litle_endian(lenght);
 
-    fwrite(lenght, 1, 4, outfile);
-    fput_bytes(outfile, chunk->type, 4);
-    fput_bytes(outfile, chunk->data, orig_lenght);
-    fputc(chunk->crc, outfile);
+    Byte * crc = (Byte *)&chunk->crc;
+    correct_litle_endian(crc);
 
+    fwrite(lenght, 1, 4, outfile);
+    fwrite(chunk->type, 1, 4, outfile);
+    fwrite(chunk->data, 1, orig_lenght, outfile);
+    fwrite(crc, 1, 4, outfile);
+
+    correct_litle_endian(lenght);
+    correct_litle_endian(crc);
 }
 
-void trash_chunk(Chunk * block){
-    free(block->data);
-    free(block);
+void trash_chunk(Chunk * chunk){
+    free(chunk->data);
+    free(chunk);
 }
 
 IHDR* to_IHDR(Byte * raw_data){

@@ -41,6 +41,7 @@ typedef struct {
 typedef SIZE_RAW Dimentions;
 
 bool is_PNG(FILE * image);
+void fwrite_sign(FILE * outfile);
 void correct_litle_endian(Byte * bytes);
 Chunk * next_chunk(FILE * image);
 void fwrite_chunk(FILE * outfile, Chunk * chunk);
