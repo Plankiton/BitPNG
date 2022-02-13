@@ -1,4 +1,5 @@
 #include "png.h"
+#include "crc.h"
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -63,24 +64,28 @@ Chunk *next_chunk(FILE *image) {
 }
 
 void fwrite_chunk(FILE *outfile, Chunk *chunk) {
-  int orig_lenght = chunk->lenght;
+  size_t crc_data_len = chunk->lenght + 4;
 
-  Byte *lenght = (Byte *)&chunk->lenght;
-  correct_litle_endian(lenght);
+  Byte *data = malloc(crc_data_len);
+  memcpy(data, chunk->type, 4);
+  memcpy(data + 4, chunk->data, chunk->lenght);
 
-  // chunk->crc = check_crc(chunk) ?crcSlow(chunk->data, chunk->lenght)
-  // :chunk->crc;
+  Byte *len_bytes = malloc(4);
+  memcpy(len_bytes, (Byte *)&chunk->lenght, 4);
 
-  Byte *crc = (Byte *)&chunk->crc;
-  correct_litle_endian(crc);
+  int new_crc = crc32(0x0L, data, crc_data_len); // ^ 0xFFL;
+  printf("%s: crc %.4x -> %.4x\n", chunk->type, chunk->crc, new_crc);
 
-  fwrite(lenght, 1, 4, outfile);
-  fwrite(chunk->type, 1, 4, outfile);
-  fwrite(chunk->data, 1, orig_lenght, outfile);
-  fwrite(crc, 1, 4, outfile);
+  chunk->crc = new_crc;
+  Byte *crc_bytes = malloc(4);
+  memcpy(crc_bytes, (Byte *)&chunk->crc, 4);
 
-  correct_litle_endian(lenght);
-  correct_litle_endian(crc);
+  correct_litle_endian(crc_bytes);
+  correct_litle_endian(len_bytes);
+  fwrite(len_bytes, 1, 4, outfile);
+  fwrite(data, 1, crc_data_len, outfile);
+  fwrite(crc_bytes, 1, 4, outfile);
+  free(data);
 }
 
 void trash_chunk(Chunk *chunk) {
